@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate
 from scipy.constants import h, hbar, Boltzmann
+from alive_progress import alive_bar
 import itertools
 import os.path
 import time as ttime
@@ -1037,7 +1038,7 @@ def trafo_U(Liouvillian, Nsup):
 
     return U
 
-def evolution(eops, rho0, timelist, Liouvillian):
+def evolution(eops, rho0, timelist, Liouvillian, progress_prints=False):
     """
     Computes the time evolution of the initial state operator expectation values.
 
@@ -1051,6 +1052,10 @@ def evolution(eops, rho0, timelist, Liouvillian):
         A list of times for whicg to evaluate the dynamics.
     truncation : integer
         Truncation of the resonator Hilbert space
+    progress_prints : bool (default False)
+        Whether to print the progress alongside the progress bar. Printing
+        is useful if the code is run in a hpc cluster, for example, to get updates
+        to the log files.
     
     Returns
     -------
@@ -1066,22 +1071,26 @@ def evolution(eops, rho0, timelist, Liouvillian):
     results = [np.empty(0) for _ in range(len(eops) + 1)] #+1 because an array also for the trace of rho_t
 
     print("\nComputing evolution:")
-    for idx, time in enumerate(timelist):
-        
-        if(idx%100 == 0):
-            t1 = ttime.time()
-            print("...Calculated {:.2f}%. Elapsed time {}"
-                  .format(time/timelist[-1]*100, ttime.strftime("%H:%M:%S", ttime.gmtime(t1-t0))))
+    with alive_bar(len(timelist), force_tty=True) as bar:
+        for idx, time in enumerate(timelist):
 
-        rho_t = (time*Liouvillian).expm()*rho0
-        rho_t = vec_to_op(rho_t)
-        trace = rho_t.tr()
-        results[-1] = np.append(results[-1], trace)
+            if(progress_prints):
+                if(idx%100 == 0):
+                    t1 = ttime.time()
+                    print("...Calculated {:.2f}%. Elapsed time {}"
+                          .format(time/timelist[-1]*100, ttime.strftime("%H:%M:%S", ttime.gmtime(t1-t0))))
 
-        for i, op in enumerate(eops):
-            op_t = (rho_t*op).tr()
-            results[i] = np.append(results[i], op_t)
-            
+            rho_t = (time*Liouvillian).expm()*rho0
+            rho_t = vec_to_op(rho_t)
+            trace = rho_t.tr()
+            results[-1] = np.append(results[-1], trace)
+
+            for i, op in enumerate(eops):
+                op_t = (rho_t*op).tr()
+                results[i] = np.append(results[i], op_t)
+
+            bar()
+
 
     rho_t_final = (timelist[-1]*Liouvillian).expm()*rho0
     rho_t_final = vec_to_op(rho_t_final)
