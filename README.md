@@ -4,6 +4,12 @@ This repository accompanies the upcoming manuscript "A general algorithm for per
 
 ## Installation
 
+Clone the repository and install the required packages using
+```python 
+pip3 install -r requirements.txt
+```
+
+
 ## Running the script
 
 ## Referencing
