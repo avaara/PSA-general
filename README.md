@@ -9,7 +9,9 @@ Clone the repository and install the required packages using
 pip3 install -r requirements.txt
 ```
 
-
 ## Running the script
 
+The file `me_func_defs.py` contains all the functions required to compute the open quantum system dynamics. One should define their own Hamiltonian describing the system under study in a separate file and call the functions by importing `me_func_defs.py` to that file. See the jupyter notebook example how the functions can be used.
+
 ## Referencing
+
