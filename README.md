@@ -1,6 +1,6 @@
-# A general algorithm for performing the partial secular approximation in Lindblad master equations
+# Two general algorithms for performing the partial secular approximation on the Redfield equation
 
-This repository accompanies the upcoming manuscript "A general algorithm for performing the partial secular approximation in Lindblad master equations".
+This repository accompanies the upcoming manuscript "Two general algorithms for performing the partial secular approximation on the Redfield equation".
 
 ## Installation
 
