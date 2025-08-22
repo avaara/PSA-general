@@ -573,7 +573,7 @@ def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
     chi = parameters[2]
 
     #Setting the timescale of dynamics for the secular approximation
-    tscale = 1/chi * 1/alpha**2
+    tscale = 1/alpha**2
 
     #Initializing the dissipator
     dissipator = Q.Qobj()
@@ -610,6 +610,8 @@ def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
                 continue
 
             y = alpha**2 * gamma(omega1, omega2, chi, T, J_func, omega_c) #This is the factor gamma in front of dissipator
+            # print("y: {}, omega1: {}, omega2: {}".format(y, omega1, omega2))
+            #print(pair)
             #If jump operators are the same, add them only once
             if(op1 == op2):
                 this_diss = y * (Q.tensor(op1, op2.dag().trans())
