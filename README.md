@@ -1,6 +1,6 @@
-# Two general algorithms for performing the partial secular approximation on the Redfield equation
+# Numerical implementation of the partial secular approximation and unified master equation in structured open quantum systems
 
-This repository accompanies the upcoming manuscript "Two general algorithms for performing the partial secular approximation on the Redfield equation".
+This repository accompanies the upcoming manuscript "Numerical implementation of the partial secular approximation and unified master equation in structured open quantum systems".
 
 ## Installation
 
