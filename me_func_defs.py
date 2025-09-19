@@ -465,9 +465,9 @@ def jump_ops_general(Hamiltonian, coupling_ops, tol=1e-10):
             #Taking into account only the ones which are non-zero with given tolerance
             if(np.abs(coeff) > tol):
                 jump_ops[i].append([i+1, (eval2, eval1), energy_jump, jump])
-                # print(energy_jump)
+                # print("Jump energy: {}".format(energy_jump))
+                # print("Coeff: {}".format(coeff))
                 # print(jump)
-                # print(enr_operator(jump))
 
     return jump_ops
 
@@ -589,6 +589,7 @@ def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
     
         #Makes jump operator pairs
         jump_pairs = list(itertools.combinations_with_replacement(j_op_list, 2))
+        
         #Going through the jump operator combinations
         for pair in jump_pairs:
             jump1 = pair[0]
@@ -610,8 +611,8 @@ def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
                 continue
 
             y = alpha**2 * gamma(omega1, omega2, chi, T, J_func, omega_c) #This is the factor gamma in front of dissipator
-            # print("y: {}, omega1: {}, omega2: {}".format(y, omega1, omega2))
-            #print(pair)
+            #print("y: {}, omega1: {}, omega2: {}".format(y, omega1, omega2))
+            # print(pair)
             #If jump operators are the same, add them only once
             if(op1 == op2):
                 this_diss = y * (Q.tensor(op1, op2.dag().trans())
@@ -634,6 +635,7 @@ def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
             dissipator += this_diss1 + this_diss2
             if(print_info): print("    Cross term was added with gamma = {}".format(y))
 
+        
     print("...Out of {} jump operator pairs {} were discarded due to secular approximation"
           .format(len(jump_pairs), discarded))
     return dissipator
