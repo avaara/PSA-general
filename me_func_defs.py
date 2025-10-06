@@ -294,7 +294,12 @@ def vec_to_op(vec):
     op = Q.Qobj(op, dims)
     return op
 
-def do_secular_approx(omega1, omega2, timescale, prints=False, psa_cut=1e4, tol=1e-10):
+def do_secular_approx(omega1,
+                      omega2,
+                      timescale,
+                      prints=False,
+                      psa_cut=1e4,
+                      tol=1e-10):
     """
     Determines whether or not the secular approximation can be safely performed.
 
@@ -471,7 +476,12 @@ def jump_ops_general(Hamiltonian, coupling_ops, tol=1e-10):
 
     return jump_ops
 
-def Lamb_shift_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-10, omega_c=100):
+def Lamb_shift_general(jump_operators,
+                       parameters,
+                       J_func,
+                       psa_cut=1e4,
+                       tol=1e-10,
+                       omega_c=100):
     """
     Computes the Lamb-shift due to the environmental interaction to the 
     system Hamiltonian. 
@@ -543,7 +553,13 @@ def Lamb_shift_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
 
     return H_LS
                 
-def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-10, omega_c=100, print_info=False):
+def dissipator_general(jump_operators,
+                       parameters,
+                       J_func,
+                       psa_cut=1e4,
+                       tol=1e-10,
+                       omega_c=100,
+                       print_info=False):
     """
     Computes the dissipator part of the master equation.
 
@@ -573,7 +589,7 @@ def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
     chi = parameters[2]
 
     #Setting the timescale of dynamics for the secular approximation
-    tscale = 1/alpha**2
+    tscale = 1/chi * 1/alpha**2
 
     #Initializing the dissipator
     dissipator = Q.Qobj()
@@ -611,7 +627,7 @@ def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
                 continue
 
             y = alpha**2 * gamma(omega1, omega2, chi, T, J_func, omega_c) #This is the factor gamma in front of dissipator
-            #print("y: {}, omega1: {}, omega2: {}".format(y, omega1, omega2))
+            # print("y: {}, omega1: {}, omega2: {}".format(y, omega1, omega2))
             # print(pair)
             #If jump operators are the same, add them only once
             if(op1 == op2):
@@ -640,7 +656,11 @@ def dissipator_general(jump_operators, parameters, J_func, psa_cut=1e4, tol=1e-1
           .format(len(jump_pairs), discarded))
     return dissipator
 
-def dissipator_unified_eq(jump_operators, clusters_and_avgs, parameters, J_func, print_info=False):
+def dissipator_unified_eq(jump_operators,
+                          clusters_and_avgs,
+                          parameters,
+                          J_func,
+                          print_info=False):
     """
     Computes the dissipator of the unified master equation approach by performing
     the PSA between clusters of Bohr frequencies while the jump operators within
@@ -1042,7 +1062,11 @@ def trafo_U(Liouvillian, Nsup):
 
     return U
 
-def evolution(eops, rho0, timelist, Liouvillian, progress_prints=False):
+def evolution(eops,
+              rho0,
+              timelist,
+              Liouvillian,
+              progress_prints=False):
     """
     Computes the time evolution of the initial state operator expectation values.
 
