@@ -1066,6 +1066,7 @@ def evolution(eops,
               rho0,
               timelist,
               Liouvillian,
+              check_pos_at_times=None,
               progress_prints=False):
     """
     Computes the time evolution of the initial state operator expectation values.
@@ -1080,6 +1081,10 @@ def evolution(eops,
         A list of times for whicg to evaluate the dynamics.
     truncation : integer
         Truncation of the resonator Hilbert space
+    check_pos_at_times : list
+        A list of times for which to check the positivity of the solution.
+        The positivity is measured by computing the eigenvalues of the
+        density matrix and summing together the negative eigenvalues.
     progress_prints : bool (default False)
         Whether to print the progress alongside the progress bar. Printing
         is useful if the code is run in a hpc cluster, for example, to get updates
@@ -1096,7 +1101,12 @@ def evolution(eops,
     
     rho0 = op_to_vec(rho0)
 
-    results = [np.empty(0) for _ in range(len(eops) + 1)] #+1 because an array also for the trace of rho_t
+    result_dict = {"Expectation values":[],
+                   "Trace":[],
+                   "rho_final":Q.Qobj(),
+                   "Negativities":[]}
+    results = [np.empty(0) for _ in range(len(eops))]
+    traces = []
 
     print("\nComputing evolution:")
     with alive_bar(len(timelist), force_tty=True) as bar:
@@ -1106,12 +1116,14 @@ def evolution(eops,
                 if(idx%100 == 0):
                     t1 = ttime.time()
                     print("...Calculated {:.2f}%. Elapsed time {}"
-                          .format(time/timelist[-1]*100, ttime.strftime("%H:%M:%S", ttime.gmtime(t1-t0))))
+                          .format(time/timelist[-1]*100,
+                                  ttime.strftime("%H:%M:%S",
+                                                 ttime.gmtime(t1-t0))))
 
             rho_t = (time*Liouvillian).expm()*rho0
             rho_t = vec_to_op(rho_t)
             trace = rho_t.tr()
-            results[-1] = np.append(results[-1], trace)
+            traces.append(trace)
 
             for i, op in enumerate(eops):
                 op_t = (rho_t*op).tr()
@@ -1120,10 +1132,32 @@ def evolution(eops,
             bar()
 
 
+    #Computing the negativity
+    neg_list = []
+    if(check_pos_at_times.any() != None):
+        print("\nComputing the negativity of the solution at specified times")
+        for time in check_pos_at_times:
+            rho_t = (time*Liouvillian).expm()*rho0
+            rho_t = vec_to_op(rho_t)
+            neg = compute_negativity(rho_t)
+            neg_list.append(neg)
+            
     rho_t_final = (timelist[-1]*Liouvillian).expm()*rho0
     rho_t_final = vec_to_op(rho_t_final)
-    results.append(rho_t_final)
-    return results
+
+    result_dict["Negativities"] = neg_list
+    result_dict["Expectation values"] = results
+    result_dict["rho_final"] = rho_t_final
+    result_dict["Trace"] = traces
+    
+    return result_dict
+
+def compute_negativity(rho):
+    
+    evals = rho.eigenenergies()
+    negativity = sum(e for e in evals if e < 0)
+    
+    return negativity
 
 def trunc(temperature, omega_norm):
     """
