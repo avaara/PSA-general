@@ -1066,7 +1066,7 @@ def evolution(eops,
               rho0,
               timelist,
               Liouvillian,
-              check_pos_at_times=None,
+              check_pos_at_times=np.array([]),
               progress_prints=False):
     """
     Computes the time evolution of the initial state operator expectation values.
@@ -1081,7 +1081,7 @@ def evolution(eops,
         A list of times for whicg to evaluate the dynamics.
     truncation : integer
         Truncation of the resonator Hilbert space
-    check_pos_at_times : list
+    check_pos_at_times : list (default [])
         A list of times for which to check the positivity of the solution.
         The positivity is measured by computing the eigenvalues of the
         density matrix and summing together the negative eigenvalues.
@@ -1134,7 +1134,7 @@ def evolution(eops,
 
     #Computing the negativity
     neg_list = []
-    if(check_pos_at_times.any() != None):
+    if(check_pos_at_times.any()):
         print("\nComputing the negativity of the solution at specified times")
         for time in check_pos_at_times:
             rho_t = (time*Liouvillian).expm()*rho0
