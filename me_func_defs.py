@@ -8,6 +8,8 @@ import itertools
 import os.path
 import time as ttime
 
+Q.settings.auto_tidyup = False
+
 np.set_printoptions(linewidth=500)
 
 
@@ -113,6 +115,12 @@ def S(omega_norm, khi, temperature, J_func, omega_c=100):
 
     #This is the case omega = 0.0
     else:
+        I1 = integrate.quad(lambda x: -J_func(x*omega_norm, khi, omega_c),
+                            1e-6,
+                            1e9,
+                            weight='cauchy',
+                            wvar=0,
+                            epsabs=1e-10)
         return 0
 
 def gamma(omega1, omega2, khi, temperature, J_func, omega_c=100):
@@ -156,14 +164,18 @@ def gamma(omega1, omega2, khi, temperature, J_func, omega_c=100):
         real1 = np.pi * J_func(-omega1, khi, omega_c) * BE_distribution(-omega1, temperature)
         # print("Re:{}".format(real1))
     else:
-        real1 = 0
+        # real1 = 0
+        # Ad hoc limit of omega1 going to zero
+        real1 = np.pi * J_func(1e-8, khi, omega_c) * (2*BE_distribution(1e-8, temperature) + 1)
 
     if(omega2 > 0):
         real2 = np.pi * J_func(omega2, khi, omega_c) * (1 + BE_distribution(omega2, temperature))
     elif(omega2 < 0):
         real2 = np.pi * J_func(-omega2, khi, omega_c) * BE_distribution(-omega2, temperature)
     else:
-        real2 = 0
+        # real2 = 0
+        # Ad hoc limit of omega2 going to zero
+        real2 = np.pi * J_func(1e-8, khi, omega_c) * (2*BE_distribution(1e-8, temperature) + 1)
 
     imag1 = S(omega1, khi, temperature, J_func, omega_c)
     imag2 = S(omega2, khi, temperature, J_func, omega_c)
@@ -211,7 +223,7 @@ def BE_distribution(omega_norm, temperature, natural_units=True):
     try:
         if(abs(omega_norm)<1e-6):
             # Taylor expansion for very small omega
-            BE = 1/(C*omega_norm) + 0.5*(1/C*omega_norm)**2
+            BE = 1/(C*omega_norm) #+ 0.5*(1/C*omega_norm)**2
         else:
             BE = 1/(np.e**(omega_norm*C) - 1)
         #print("Result is {}".format(BE))
@@ -402,11 +414,20 @@ def Scoeff(omega, omega2, khi, temperature, J_func, omega_c=100):
         imag1 = np.pi/2 * J_func(omega, khi, omega_c) * (1 + BE_distribution(omega, temperature))
     if(omega < 0): #Absorbtion
         imag1 = np.pi/2 * J_func(-omega, khi, omega_c) * BE_distribution(-omega, temperature)
+    else:
+        # imag1 = 0
+        # Ad hoc limit of omega going to zero
+        imag1 = np.pi/2 * J_func(1e-8, khi, omega_c) * (2*BE_distribution(1e-8, temperature) + 1)
+        
 
     if(omega2 > 0): #Emission
         imag2 = np.pi/2 * J_func(omega2, khi, omega_c) * (1 + BE_distribution(omega2, temperature))
     if(omega2 < 0): #Absorbtion
         imag2 = np.pi/2 * J_func(-omega2, khi, omega_c) * BE_distribution(-omega2, temperature)
+    else:
+        # imag2 = 0
+        # Ad hoc limit of omega2 going to zero
+        imag2 = np.pi/2 * J_func(1e-8, khi, omega_c) * (2*BE_distribution(1e-8, temperature) + 1)
 
     imagpart = imag1 - imag2
 
@@ -652,8 +673,8 @@ def dissipator_general(jump_operators,
             if(print_info): print("    Cross term was added with gamma = {}".format(y))
 
         
-    print("...Out of {} jump operator pairs {} were discarded due to secular approximation"
-          .format(len(jump_pairs), discarded))
+        print("...Out of {} jump operator pairs {} were discarded due to secular approximation"
+              .format(len(jump_pairs), discarded))
     return dissipator
 
 def dissipator_unified_eq(jump_operators,
@@ -702,27 +723,32 @@ def dissipator_unified_eq(jump_operators,
     clusters = clusters_and_avgs[0]
     clus_avgs = clusters_and_avgs[1]
 
+    print("...Computing unified me with {} clusters".format(len(clus_avgs)))
+
     #Initializing array of clusters to search for index of specific Bohr freq
     clusters_arr = np.empty([len(clusters), len(max(clusters, key=lambda x: len(x)))])
     clusters_arr[:] = np.nan
-    
+
     #Adding frequencies of each cluster to the 2D array. Each row is a cluster
     for i, clus in enumerate(clusters):
         clusters_arr[i][0:len(clus)] = clus
 
     new_jump_ops = [[] for l in jump_operators]
+    
     #Goes through jump operators coming from the different coupling operators (sum over beta)
     for j, j_op_list in enumerate(jump_operators):
         clustered_jumps = [[] for arr in clusters]
 
         #Searching for the jump op corresponding to specific Bohr freq and adding the jump
-        #in to list of clustered jump operators to its correct place
+        #in to list of clustered jump operators to its correct place. Not all clusters have
+        #jump operators.
         for jump in j_op_list:
             Bohr_f = jump[2]
             #Searching the index of the correct Bohr freq in the clusters
             list_idx = tuple(np.where(np.round(clusters_arr, 8) == round(Bohr_f, 8))[0])[0]
             clustered_jumps[list_idx].append(jump)
-            
+
+        #print(clustered_jumps)
         #Computes the sum of jumps in the same cluster
         for i, jump_cluster in enumerate(clustered_jumps):
             tot_jump = Q.Qobj()
@@ -730,16 +756,23 @@ def dissipator_unified_eq(jump_operators,
                 tot_jump += jump[3]
 
             avg_omega = clus_avgs[i]
+            # print(i)
+            # print(tot_jump)
             #Adding the summed up jump operator of the cluster to a list
-            #that has the same form as the jump_operators list before
+            #that has the same form as the jump_operators list before. The
+            #following discards the clusters with no jump operators.
             if(not (tot_jump.isbra == True and tot_jump.shape == (1,1))):
                 new_jump_ops[j].append([j+1, np.nan, avg_omega, tot_jump])
 
+
+    print("...of which {} clusters were assigned a single unified jump op"
+          .format(sum(len(new_jump_ops[i]) for i in range(len(new_jump_ops)))))
     #The dissipator of the unified me can be calculated using the same method
     #as for the general case because only the jumps have been grouped together
     #differently. The full secular aprox is performed between the jumps
     #from different clusters.
     diss = dissipator_general(new_jump_ops, parameters, J_func, psa_cut=0, print_info=print_info)
+
     return diss
 
 def freq_clustering(Bohr_fs, width, plot=False):
@@ -942,7 +975,8 @@ def Liouvillian_general(Hamiltonian_sys,
         else:
             jumps = jump_ops_general(Hamiltonian_sys, cpl_ops, tol=tol)
         t1 = ttime.time()
-        print("...Jumps computed in {:.2f}s".format(t1-t0))
+        print("...Jumps computed in {:.2f}s. Number of jump ops: {}"
+              .format(t1-t0, sum(len(jumps[i]) for i in range(len(jumps)))))
         #-------------------------------------------------
 
         #-----------Computing the Lamb-shift--------------
