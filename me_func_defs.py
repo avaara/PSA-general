@@ -121,7 +121,7 @@ def S(omega_norm, khi, temperature, J_func, omega_c=100):
                             weight='cauchy',
                             wvar=0,
                             epsabs=1e-10)
-        return I1
+        return I1[0]
 
 def gamma(omega1, omega2, khi, temperature, J_func, omega_c=100):
     """
@@ -155,7 +155,7 @@ def gamma(omega1, omega2, khi, temperature, J_func, omega_c=100):
 
     """
 
-    # print("\nComputing gamma with frequencies {}, {}".format(omega1, omega2))
+    print("\nComputing gamma with frequencies {}, {}".format(omega1, omega2))
     
     if(omega1 > 0):
         real1 = np.pi * J_func(omega1, khi, omega_c) * (1 + BE_distribution(omega1, temperature))
@@ -180,6 +180,7 @@ def gamma(omega1, omega2, khi, temperature, J_func, omega_c=100):
     imag1 = S(omega1, khi, temperature, J_func, omega_c)
     imag2 = S(omega2, khi, temperature, J_func, omega_c)
 
+    # print("Re:{}, {}".format(real1, real2))
     # print("Im:{}, {}".format(imag1, imag2))
     
     return real1 + real2 + 1j*imag1 - 1j*imag2
