@@ -121,7 +121,7 @@ def S(omega_norm, khi, temperature, J_func, omega_c=100):
                             weight='cauchy',
                             wvar=0,
                             epsabs=1e-10)
-        return 0
+        return I1
 
 def gamma(omega1, omega2, khi, temperature, J_func, omega_c=100):
     """
