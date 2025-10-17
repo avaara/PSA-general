@@ -155,7 +155,7 @@ def gamma(omega1, omega2, khi, temperature, J_func, omega_c=100):
 
     """
 
-    print("\nComputing gamma with frequencies {}, {}".format(omega1, omega2))
+    # print("\nComputing gamma with frequencies {}, {}".format(omega1, omega2))
     
     if(omega1 > 0):
         real1 = np.pi * J_func(omega1, khi, omega_c) * (1 + BE_distribution(omega1, temperature))
