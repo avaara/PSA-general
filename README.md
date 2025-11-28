@@ -15,3 +15,6 @@ The file `me_func_defs.py` contains all the functions required to compute the op
 
 ## Referencing
 
+This work can be cited as
+
+A. Vaaranta, M. Cattaneo, Numerical implementation of the partial secular approximation and unified master equation in structured open quantum systems, Comput. Phys. Commun. 320 (2026) 109948.
